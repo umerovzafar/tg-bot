@@ -171,6 +171,7 @@ Future<void> main() async {
               KeyboardButton(text: translations['card_payment']![lang]!),
               KeyboardButton(text: translations['installment_payment']![lang]!),
             ],
+            [KeyboardButton(text: translations['bank_transfer']![lang]!)],
             [KeyboardButton(text: translations['back']![lang]!)],
           ],
           resizeKeyboard: true,
@@ -184,8 +185,8 @@ Future<void> main() async {
 
       String message =
           lang == 'ru'
-              ? '✅ Вы выбрали способ оплаты: Перевод на карту.\n\nСтоимость участия: 1.300.000\n\n📝 Пожалуйста, переведите сумму на следующий номер карты:\n\n💳 Номер карты: 5614 6815 1883 8507\n\n👤 Получатель: Рахматова Анастасия\n\nПосле перевода, пожалуйста, подтвердите!'
-              : '✅ Siz toʻlov usulini tanladingiz: Kartaga oʻtkazish.\n\nIshtirok narxi: 1 300 000 so‘m\n\n📝 Iltimos, summa quyidagi karta raqamiga oʻtkazishing:\n\n💳 Karta raqami: 5614 6815 1883 8507\n\n👤 Oʻtkazuvchi: Raxmatova Anastasiya\n\nPul oʻtkazmasini amalga oshirganingizdan soʻng, iltimos tasdiqlang!';
+              ? '✅ Вы выбрали способ оплаты: Перевод на карту.\n\nСтоимость участия: 1.300.000\n\n📝 Пожалуйста, переведите сумму на следующий номер карты:\n\n💳 Номер карты: 5440 8103 0865 3178\n\n👤 Получатель: Орешкина Елена\n\nПосле перевода, пожалуйста, подтвердите!'
+              : '✅ Siz toʻlov usulini tanladingiz: Kartaga oʻtkazish.\n\nIshtirok narxi: 1 300 000 so‘m\n\n📝 Iltimos, summa quyidagi karta raqamiga oʻtkazishing:\n\n💳 Karta raqami: 5440 8103 0865 3178\n\n👤 Oʻtkazuvchi: Oreshkina Elena\n\nPul oʻtkazmasini amalga oshirganingizdan soʻng, iltimos tasdiqlang!';
 
       teledart.sendMessage(chatId, message, parseMode: 'HTML');
 
@@ -195,6 +196,24 @@ Future<void> main() async {
           lang == 'ru'
               ? '⏳ Ожидаем подтверждение оплаты. Пожалуйста, отправьте фото с подтверждением перевода.'
               : '⏳ Toʻlov tasdiqlanganini kutyapmiz. Iltimos, oʻtkazish tasdiqlovchi fotosuratni yuboring.',
+        );
+      });
+    }
+
+    if (text == translations['bank_transfer']!['ru']! ||
+        text == translations['bank_transfer']!['uz']!) {
+      final lang = getUserLanguage(chatId) ?? 'ru';
+
+      String message = translations['bank_transfer_info']![lang]!;
+
+      teledart.sendMessage(chatId, message, parseMode: 'HTML');
+
+      Future.delayed(Duration(seconds: 1), () {
+        teledart.sendMessage(
+          chatId,
+          lang == 'ru'
+              ? '⏳ Ожидаем подтверждение оплаты. Пожалуйста, отправьте фото с подтверждением перевода.'
+              : '⏳ Toʻlov tasdiqlanganini kutyapmiz. Iltimos, oʻtkazmani tasdiqlovchi fotosuratni yuboring.',
         );
       });
     }
@@ -232,7 +251,6 @@ Future<void> main() async {
   teledart.onMessage().listen((message) async {
     if (message.photo != null && !isPhotoProcessed) {
       final photo = message.photo!.last;
-
       final profile = getUserProfile(message.chat.id);
 
       if (profile != null) {
@@ -266,11 +284,11 @@ Future<void> main() async {
             [
               InlineKeyboardButton(
                 text: lang == 'ru' ? 'Принять' : 'Qabul qilish',
-                callbackData: 'accept_payment',
+                callbackData: 'accept_payment:${message.chat.id}',
               ),
               InlineKeyboardButton(
                 text: lang == 'ru' ? 'Отклонить' : 'Rad etish',
-                callbackData: 'reject_payment',
+                callbackData: 'reject_payment:${message.chat.id}',
               ),
             ],
           ],
@@ -298,73 +316,46 @@ Future<void> main() async {
     final messageId = callbackQuery.message!.messageId;
     final chatId = callbackQuery.message!.chat.id;
     final lang = getUserLanguage(chatId) ?? 'ru';
-
-    final consultationInfo = {
-      'ru':
-          '💬 Для консультации, пожалуйста, обратитесь по номеру:\n\n📞 +998998495199\n\nНаши специалисты с радостью вам помогут!',
-      'uz':
-          '💬 Konsultatsiya uchun quyidagi telefon raqamiga murojaat qilishingiz mumkin:\n\n📞 +998953272721\n\nMutaxassislarimiz sizga mamnuniyat bilan yordam beradi!',
-    };
+    final profile = getUserProfile(int.parse(callbackData!.split(':')[1]));
 
     if (callbackQuery.message!.text != null) {
-      if (callbackData == 'accept_payment') {
+      if (callbackData.split(':')[0] == 'accept_payment') {
         await teledart.editMessageText(
-          chatId: chatId,
+          chatId: callbackData.split(':')[0],
           messageId: messageId,
           lang == 'ru'
-              ? '✅ Платеж принят. Ожидайте подтверждения.'
-              : '✅ Toʻlov qabul qilindi. Tasdiqlashni kuting.',
+              ? '✅ Платеж принят.\n\nНомер телефона: ${profile!['phone']}\n\nФИО отправителя: ${profile['full_name']}'
+              : '✅ Toʻlov qabul qilindi.\n\n📛 F.I.Sh: ${profile!['phone']}\n📱 Telefon raqami: ${profile['full_name']}',
         );
-
-        await teledart.sendMessage(
-          chatId,
-          lang == 'ru'
-              ? '💳 Оплата прошла успешно! Спасибо за ваш платеж. ${consultationInfo['ru']}'
-              : '💳 Toʻlov muvaffaqiyatli amalga oshirildi! Toʻlovingiz uchun rahmat. ${consultationInfo['uz']}',
-        );
-      } else if (callbackData == 'reject_payment') {
+      } else if (callbackData.split(':')[0] == 'reject_payment') {
         await teledart.editMessageText(
-          chatId: chatId,
+          chatId: callbackData.split(':')[0],
           messageId: messageId,
-          lang == 'ru' ? '❌ Платеж отклонен.' : '❌ Toʻlov rad etildi.',
-        );
-
-        await teledart.sendMessage(
-          chatId,
           lang == 'ru'
-              ? '❌ Оплата не прошла. ${consultationInfo['ru']}'
-              : '❌ Toʻlov amalga oshmadi. ${consultationInfo['uz']}',
+              ? '❌ Платеж отклонен.\n\nНомер телефона: ${profile!['phone']}\n\nФИО отправителя: ${profile['full_name']}'
+              : '❌ Toʻlov rad etildi.\n\n📛 F.I.Sh: ${profile!['phone']}\n📱 Telefon raqami: ${profile['full_name']}',
         );
       }
     } else if (callbackQuery.message!.photo != null) {
-      if (callbackData == 'accept_payment') {
+      if (callbackData.split(':')[0] == 'accept_payment') {
         await teledart.editMessageCaption(
           chatId: chatId,
           messageId: messageId,
           caption:
               lang == 'ru'
-                  ? '✅ Платеж принят. Ожидайте подтверждения.'
-                  : '✅ Toʻlov qabul qilindi. Tasdiqlashni kuting.',
+                  ? '✅ Платеж принят.\n\nНомер телефона: ${profile!['phone']}\n\nФИО отправителя: ${profile['full_name']}'
+                  : '✅ Toʻlov qabul qilindi.\n\n📛 F.I.Sh: ${profile!['phone']}\n📱 Telefon raqami: ${profile['full_name']}',
         );
-      } else if (callbackData == 'reject_payment') {
+      } else if (callbackData.split(':')[0] == 'reject_payment') {
         await teledart.editMessageCaption(
           chatId: chatId,
           messageId: messageId,
-          caption: lang == 'ru' ? '❌ Платеж отклонен.' : '❌ Toʻlov rad etildi.',
+          caption:
+              lang == 'ru'
+                  ? '❌ Платеж отклонен.\n\nНомер телефона: ${profile!['phone']}\n\nФИО отправителя: ${profile['full_name']}'
+                  : '❌ Toʻlov rad etildi.\n\n📛 F.I.Sh: ${profile!['phone']}\n📱 Telefon raqami: ${profile['full_name']}',
         );
       }
     }
-
-    await teledart.answerCallbackQuery(
-      callbackQuery.id,
-      text:
-          lang == 'ru'
-              ? callbackData == 'accept_payment'
-                  ? 'Оплата принята.'
-                  : 'Оплата отклонена.'
-              : callbackData == 'accept_payment'
-              ? 'Toʻlov qabul qilindi.'
-              : 'Toʻlov rad etildi.',
-    );
   });
 }

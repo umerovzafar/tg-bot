@@ -49,6 +49,17 @@ final translations = {
     'ru': 'Оплата в рассрочку',
     'uz': 'Boʻlib-boʻlib toʻlov',
   },
+  'bank_transfer': {
+    'ru': 'Перевод на расчётный счёт',
+    'uz': 'Hisob raqamga oʻtkazma',
+  },
+  'bank_transfer_info': {
+    'ru':
+        '🏦 Вы выбрали способ оплаты: Перевод на расчётный счёт.\n\nСтоимость участия: 1.300.000\n\n📝 Пожалуйста, переведите сумму по следующим реквизитам:\n\n🔢 Расчётный счёт: 20218000107006299001\n\nМФО: 01125\n\nПосле перевода, пожалуйста, подтвердите!',
+    'uz':
+        '🏦 Siz toʻlov usulini tanladingiz: Hisob raqamga oʻtkazma.\n\nIshtirok narxi: 1 300 000 so‘m\n\n📝 Iltimos, quyidagi rekvizitlarga summa oʻtkazing:\n\n🔢 Hisob raqami: 20218000107006299001\n\nMFO: 01125\n\nToʻlovni amalga oshirgach, iltimos tasdiqlang!',
+  },
+
   'back': {'ru': '🔙 Назад', 'uz': '🔙 Orqaga'},
   'installment_payment_info': {
     'ru':
